@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        "ownerUid": { ".write": "auth != null && auth.token.owner == true && (!data.exists() || data.val() == auth.uid)" },
+        "publicControl": { ".write": "auth != null && auth.token.owner == true" },
+        "playback": { ".write": "auth != null && (auth.token.owner == true || data.parent().child('publicControl').val() == true)" },
+        "members": { "$uid": { ".write": "auth != null && auth.uid == $uid" } }
+      }
+    }
+  }
+}

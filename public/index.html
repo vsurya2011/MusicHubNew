@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Music Room - Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif; }
+    body { background: url('/a.jpg') no-repeat center center fixed; background-size: cover; min-height: 100vh; display: flex; justify-content: center; align-items: center; color: #fff; }
+    .container { background: rgba(0, 0, 0, 0.7); padding: 40px 50px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); text-align: center; width: 380px; backdrop-filter: blur(10px); }
+    h2 { margin-bottom: 30px; font-size: 28px; font-weight: 700; text-shadow: 1px 1px 5px rgba(0,0,0,0.7); }
+    label { display: block; margin-bottom: 5px; font-weight: 500; text-align: left; font-size: 14px; color: #eee; }
+    input { width: 100%; padding: 12px 15px; margin-bottom: 20px; border-radius: 8px; border: none; outline: none; font-size: 16px; background: #fff; color: #333; }
+    .btn-group { display: flex; gap: 10px; }
+    button { flex: 1; padding: 12px 0; border: none; border-radius: 8px; background: #ff6b81; color: #fff; font-size: 15px; cursor: pointer; transition: 0.3s; font-weight: 600; }
+    button:hover { background: #ff4757; transform: translateY(-2px); }
+    .owner-link { font-size: 12px; color: #aaa; text-decoration: none; margin-top: 15px; display: inline-block; cursor: pointer; }
+    #passArea { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎤 Music Room</h2>
+    <div>
+      <label>Username</label>
+      <input type="text" id="username" placeholder="Enter your name">
+    </div>
+    <div>
+      <label>Room Code</label>
+      <input type="text" id="room" placeholder="Enter code (e.g. ABC123)">
+    </div>
+    <div id="passArea">
+      <label>Secret Owner Password</label>
+      <input type="password" id="password" placeholder="Required for Control">
+    </div>
+    <div class="btn-group">
+      <button onclick="createRoom()">Create</button>
+      <button onclick="joinRoom()">Join Room</button>
+    </div>
+    <p class="owner-link" onclick="document.getElementById('passArea').style.display='block'">Owner Login?</p>
+  </div>
+
+  <script type="module" src="/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /temporaryUploads/{uploadId} {
+      allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
+      allow read, update, delete: if request.auth != null &&
+        (request.auth.token.owner == true || resource.data.ownerUid == request.auth.uid);
+    }
+  }
+}

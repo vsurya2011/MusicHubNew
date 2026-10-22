@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Owner Login - Music Room</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif; }
+    body {
+      background: url('/a.jpg') no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+    .container {
+      background: rgba(0,0,0,0.55);
+      padding: 40px 50px;
+      border-radius: 15px;
+      text-align: center;
+      width: 350px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+    h2 { margin-bottom: 30px; font-size:28px; font-weight:700; text-shadow:1px 1px 5px rgba(0,0,0,0.7); }
+    input { width:100%; padding:12px 15px; margin-bottom:20px; border-radius:8px; border:none; outline:none; font-size:16px; }
+    input::placeholder { color:#ccc; }
+    button { width:100%; padding:12px 0; border:none; border-radius:8px; background:#1e90ff; color:#fff; font-size:16px; cursor:pointer; font-weight:500; transition:0.3s; }
+    button:hover { background:#0073e6; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    #status { margin-top: 14px; font-size: 13px; color: #ff6b81; font-weight: 600; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔐 Owner Login</h2>
+    <input type="text" id="ownerName" placeholder="Enter your name">
+    <input type="password" id="passwordInput" placeholder="Enter owner password">
+    <button id="loginBtn">Login & Enter Room</button>
+    <div id="status"></div>
+  </div>
+
+  <script type="module" src="owner-login.js"></script>
+</body>
+</html>

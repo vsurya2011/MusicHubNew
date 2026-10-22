@@ -1,0 +1,10 @@
+{
+  "name": "music-room-firebase-vercel",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vercel dev", "deploy": "vercel --prod" },
+  "dependencies": { "firebase-admin": "^13.0.2" },
+  "devDependencies": { "vercel": "^39.2.2" },
+  "engines": { "node": ">=20" }
+}

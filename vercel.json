@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/api/songs/:category", "destination": "/api/songs?category=:category" },
+    { "source": "/room/:roomId", "destination": "/room.html?room=:roomId" },
+    { "source": "/owner-login/:roomId", "destination": "/owner-login.html?room=:roomId" }
+  ]
+}

@@ -1,0 +1,44 @@
+body {
+  background-color: #121212;
+  color: #fff;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+}
+
+h1, h2 {
+  color: #ff4081;
+}
+
+.container {
+  margin-top: 50px;
+}
+
+input {
+  padding: 10px;
+  margin: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  width: 250px;
+  text-align: center;
+}
+
+button {
+  background-color: #ff4081;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #ff79b0;
+}
+
+audio {
+  margin-top: 20px;
+  width: 80%;
+}
