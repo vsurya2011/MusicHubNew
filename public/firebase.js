@@ -40,12 +40,17 @@ export async function ownerSignIn(password) {
   if (!response.ok || !data.customToken) {
     throw new Error(data.error || 'Owner login failed');
   }
-  const credential = await signInWithCustomToken(auth, data.customToken);
-  // Ensure the custom-token sign-in (and its owner claim) has finished before navigation.
-  await credential.getIdToken(true);
-  const tokenResult = await credential.getIdTokenResult();
+  // signInWithCustomToken returns a UserCredential; token methods belong to its .user.
+  const userCredential = await signInWithCustomToken(auth, data.customToken);
+  const signedInUser = userCredential.user;
+  if (!signedInUser) {
+    throw new Error('Firebase did not return a signed-in user. Please try again.');
+  }
+  // Force-refresh the ID token so the owner custom claim is available before navigation.
+  await signedInUser.getIdToken(true);
+  const tokenResult = await signedInUser.getIdTokenResult();
   if (tokenResult.claims.owner !== true) {
     throw new Error('Owner access was not included in the Firebase token. Check /api/owner-auth and redeploy.');
   }
-  return credential;
+  return signedInUser;
 }
