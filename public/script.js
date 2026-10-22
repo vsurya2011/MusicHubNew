@@ -11,6 +11,18 @@ const $ = id => document.getElementById(id);
 $('roomCodeDisplay').textContent = roomCode;
 const player = $('player');
 let user, isOwner = false, publicControl = false, activeSource = null, isPlayingState = false;
+async function refreshOwnerRole(ownerUid) {
+  try {
+    const current = auth.currentUser;
+    if (!current || !ownerUid || current.uid !== ownerUid) { isOwner = false; refreshControlUI(); return; }
+    const tokenResult = await current.getIdTokenResult();
+    isOwner = tokenResult.claims.owner === true;
+  } catch (error) {
+    console.warn('Could not verify owner role:', error);
+    isOwner = false;
+  }
+  refreshControlUI();
+}
 let ytPlayer, ytReady = false, currentYtId = null, currentPlayback = null, lastPlaybackKey = '', currentQueue = null;
 let tamilList = [], englishList = [], pendingYT = null, currentUploadPath = null;
 const roomRef = ref(db, `rooms/${roomCode}`);
@@ -88,17 +100,16 @@ async function init() {
   const roomSnap = await get(roomRef);
   if (!roomSnap.exists()) { status('Room does not exist. Ask the owner to create it.'); return; }
   const room = roomSnap.val();
-  isOwner = !!(auth.currentUser && room.ownerUid && auth.currentUser.uid===room.ownerUid && auth.currentUser.getIdTokenResult && (await auth.currentUser.getIdTokenResult()).claims.owner===true);
-  // A refreshed page can preserve the custom owner auth token. Local storage alone never grants owner permissions.
+  // Only the server-issued Firebase custom claim grants owner controls.
   publicControl=!!room.publicControl;
-  refreshControlUI();
+  await refreshOwnerRole(room.ownerUid);
   const memberRef=ref(db,`rooms/${roomCode}/members/${user.uid}`);
   await set(memberRef,{name:username,joinedAt:Date.now()});
   onDisconnect(memberRef).remove();
   onValue(ref(db,`rooms/${roomCode}/publicControl`),snap=>{publicControl=!!snap.val();refreshControlUI();});
   onValue(membersRef,snap=>{const select=$('userSelect');select.innerHTML='';Object.values(snap.val()||{}).forEach(m=>{const o=document.createElement('option');o.textContent=m.name||'Guest';select.appendChild(o);});});
   onValue(playbackRef,snap=>applyPlayback(snap.val()));
-  onValue(ref(db,`rooms/${roomCode}/ownerUid`),snap=>{isOwner=!!snap.val()&&snap.val()===user.uid;refreshControlUI();});
+  onValue(ref(db,`rooms/${roomCode}/ownerUid`),snap=>{ void refreshOwnerRole(snap.val()); });
   loadYouTubeApi();
 }
 $('toggleControlBtn').addEventListener('click',async()=>{if(!isOwner)return;await update(roomRef,{publicControl:!publicControl});});
