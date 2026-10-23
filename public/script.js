@@ -111,12 +111,45 @@ let libraryLoaded = false;
 async function loadSongLibrary() { if (libraryLoaded) return; libraryLoaded = true; [tamilList, englishList] = await Promise.all([loadSongs('tamil','tamilSongs'), loadSongs('english','englishSongs')]); }
 function locateInLibrary(url) { let i=tamilList.findIndex(s=>s.url===url); if(i>=0)return {list:tamilList,index:i}; i=englishList.findIndex(s=>s.url===url); return i>=0?{list:englishList,index:i}:null; }
 function playQueueIndex(list,index) { if (!list?.length) return; const song=list[((index%list.length)+list.length)%list.length]; publishPlayback({type:'audio',song:song.url,songName:song.name,time:0,playing:true,uploadPath:null}); }
-function applyYT(data) {
-  if (!ytReady || !ytPlayer || !data.videoId) { pendingYT=data; $('trackTitle').textContent='Loading YouTube…'; return; }
-  activeSource='yt'; currentYtId=data.videoId; currentQueue=null; $('trackTitle').textContent=data.songName || 'YouTube Video'; setTrackSubtitle(data.songArtist || 'YouTube');
-  ytPlayer.loadVideoById({videoId:data.videoId,startSeconds:Number(data.time)||0});
-  if (!data.playing) setTimeout(()=>ytPlayer.pauseVideo?.(),500);
-  setTimeout(()=>{const title=ytPlayer.getVideoData?.()?.title;if(title)$('trackTitle').textContent=title;},1000);
+function applyYT(data, loadTrack = true) {
+  if (!ytReady || !ytPlayer || !data.videoId) {
+    pendingYT = data;
+    $('trackTitle').textContent = 'Loading YouTube…';
+    return;
+  }
+
+  activeSource = 'yt';
+  currentYtId = data.videoId;
+  currentQueue = null;
+  $('trackTitle').textContent = data.songName || 'YouTube Video';
+  setTrackSubtitle(data.songArtist || 'YouTube');
+
+  const targetTime = Math.max(0, Number(data.time) || 0);
+  if (loadTrack) {
+    // Only load when the video actually changes. Re-loading the same video on
+    // every pause/play/seek command resets playback and can jump to the start.
+    ytPlayer.loadVideoById({ videoId: data.videoId, startSeconds: targetTime });
+    if (!data.playing) {
+      setTimeout(() => {
+        if (currentYtId === data.videoId) ytPlayer.pauseVideo?.();
+      }, 400);
+    }
+  } else {
+    const currentTime = Number(ytPlayer.getCurrentTime?.() || 0);
+    if (Math.abs(currentTime - targetTime) > 1.25) {
+      ytPlayer.seekTo(targetTime, true);
+    }
+    if (data.playing) {
+      ytPlayer.playVideo();
+    } else {
+      ytPlayer.pauseVideo();
+    }
+  }
+
+  setTimeout(() => {
+    const title = ytPlayer.getVideoData?.()?.title;
+    if (title) $('trackTitle').textContent = title;
+  }, 1000);
 }
 function applyPlayback(data) {
   if (!data || !data.type || data.type==='idle') return;
@@ -124,8 +157,18 @@ function applyPlayback(data) {
   const sameTrack = currentPlayback && currentPlayback.type===data.type && (data.type==='yt' ? currentPlayback.videoId===data.videoId : currentPlayback.song===data.song);
   const driftTime = Number(data.time)||0;
   if (data.type==='yt') {
-    if (!sameTrack || key!==lastPlaybackKey) applyYT(data);
-    else if (ytReady && ytPlayer?.getCurrentTime && !canControl() && Math.abs(ytPlayer.getCurrentTime()-driftTime)>3) ytPlayer.seekTo(driftTime,true);
+    if (!sameTrack) {
+      applyYT(data, true);
+    } else if (key !== lastPlaybackKey) {
+      // Same YouTube video: apply pause/play/seek without reloading it.
+      applyYT(data, false);
+    } else if (ytReady && ytPlayer?.getCurrentTime && !canControl() &&
+               Math.abs(ytPlayer.getCurrentTime() - driftTime) > 3) {
+      // Periodically correct guest drift without repeatedly restarting playback.
+      ytPlayer.seekTo(driftTime, true);
+      if (data.playing) ytPlayer.playVideo();
+      else ytPlayer.pauseVideo();
+    }
   } else if (data.type==='audio') {
     activeSource='audio'; currentYtId=null; $('trackTitle').textContent=data.songName||'Audio'; setTrackSubtitle(data.uploadPath ? 'Uploaded audio' : 'MusicHub Library');
     if (player.src !== data.song) player.src=data.song;
@@ -179,7 +222,30 @@ $('prevBtn').addEventListener('click',playPreviousTrack);$('nextBtn').addEventLi
 $('shuffleBtn').addEventListener('click',()=>{if(!canControl())return;shuffleEnabled=!shuffleEnabled;updateModeButtons();});
 $('repeatBtn').addEventListener('click',()=>{if(!canControl())return;repeatEnabled=!repeatEnabled;updateModeButtons();});
 updateModeButtons();
-$('progressBar').addEventListener('click',e=>{if(!canControl()||!currentPlayback)return;const rect=$('progressBar').getBoundingClientRect(),pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));if(activeSource==='audio'&&player.duration)publishPlayback({...currentPlayback,time:pct*player.duration,playing:isPlayingState});else if(activeSource==='yt'&&ytReady&&ytPlayer.getDuration())publishPlayback({...currentPlayback,time:pct*ytPlayer.getDuration(),playing:isPlayingState});});
+$('progressBar').addEventListener('click', e => {
+  if (!canControl() || !currentPlayback) return;
+  const rect = $('progressBar').getBoundingClientRect();
+  if (!rect.width) return;
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+
+  if (activeSource === 'audio' && Number.isFinite(player.duration) && player.duration > 0) {
+    const time = pct * player.duration;
+    player.currentTime = time;
+    updateProgressUI(time, player.duration);
+    publishPlayback({ ...currentPlayback, time, playing: !player.paused });
+  } else if (activeSource === 'yt' && ytReady && ytPlayer?.getDuration) {
+    const duration = Number(ytPlayer.getDuration()) || 0;
+    if (duration <= 0) return;
+    const time = pct * duration;
+    // Seek immediately for the owner, then publish the exact target so every
+    // room member seeks to the same point.
+    ytPlayer.seekTo(time, true);
+    if (isPlayingState) ytPlayer.playVideo();
+    else ytPlayer.pauseVideo();
+    updateProgressUI(time, duration);
+    publishPlayback({ ...currentPlayback, time, playing: isPlayingState });
+  }
+});
 player.addEventListener('ended',async()=>{if(currentPlayback?.uploadPath){try{await deleteObject(storageRef(storage,currentPlayback.uploadPath));if(currentPlayback.uploadDoc)await deleteDoc(doc(firestore,'temporaryUploads',currentPlayback.uploadDoc));}catch(e){console.warn('Temporary upload cleanup will need manual/automated retry',e.message);}}if(canControl()&&(currentQueue || (activeSource==='yt' && ytQueue.length)))playNextTrack();else{isPlayingState=false;setPlayPauseIcon(false);}});
 setInterval(()=>{if(activeSource==='audio'&&!player.paused)updateProgressUI(player.currentTime,player.duration||0);else if(activeSource==='yt'&&ytReady&&ytPlayer?.getCurrentTime)updateProgressUI(ytPlayer.getCurrentTime(),ytPlayer.getDuration());},500);
 setInterval(()=>{if(!canControl()||!isPlayingState||!currentPlayback)return;const time=activeSource==='audio'?player.currentTime:activeSource==='yt'&&ytReady?ytPlayer.getCurrentTime():null;if(time!==null&&Number.isFinite(time))update(playbackRef,{time,updatedAt:Date.now(),updatedBy:user.uid}).catch(()=>{});},5000);
