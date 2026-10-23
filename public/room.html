@@ -6,93 +6,149 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif; }
-    body { background: url('/AI.jpg') no-repeat center center fixed; background-size: cover; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; color: #fff; }
-    .container { background: rgba(0, 0, 0, 0.65); border-radius: 15px; padding: 20px 24px; width: min(100%, 460px); min-width: 0; backdrop-filter: blur(15px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
-    h2 { text-align:center; margin-bottom: 8px; font-size:24px; font-weight:700; text-shadow: 1px 1px 5px rgba(0,0,0,0.7);}
-    label { display:block; margin:8px 0 6px; font-weight:500; font-size: 14px; color: #ddd; }
-    select { width:100%; padding:10px 12px; margin-bottom:10px; border-radius:8px; border:none; font-size:15px; background: #fff; color: #333; }
-
-    button { width:100%; padding:10px; margin-bottom:12px; border:none; border-radius:8px; background:#ff6b81; color:#fff; font-size:15px; font-weight:500; cursor:pointer; transition: 0.2s; }
-    button:hover { background:#ff4757; transform: translateY(-1px); }
-    button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    /* Special Green button for the Public Toggle */
-    #toggleControlBtn { background: #4caf50; margin-top: 10px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3); }
-    #toggleControlBtn:hover { background: #43a047; }
-
-    audio { width:100%; margin-top:12px; border-radius:8px; outline:none; background:rgba(255,255,255,0.04); padding:6px; display: none; }
-    input[type=text], input[type=file] { width:100%; padding:10px; margin-bottom:6px; border-radius:8px; border:none; font-size:14px; }
-    h3 { font-size: 16px; margin: 15px 0 10px; color: #ffeb3b; border-left: 3px solid #ff6b81; padding-left: 10px; }
-
-    /* Upload progress */
-    #uploadProgressWrap { margin-bottom: 12px; }
-    .upload-progress-track { height: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; }
-    #uploadProgressBar { height: 100%; width: 0%; background: #ff6b81; transition: width 0.15s linear; }
-    #uploadProgressText { font-size: 11px; color: #ccc; margin-top: 4px; text-align: right; }
-
-    /* YouTube search results */
-    #ytSearchResults { max-height: 220px; overflow-y: auto; margin-bottom: 10px; text-align: left; }
-    .yt-result { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
-    .yt-result:hover { background: rgba(255,255,255,0.08); }
-    .yt-result img { width: 48px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
-    .yt-result-title { font-size: 12px; color: #eee; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .yt-result-channel { font-size: 10px; color: #999; margin-top: 2px; }
-
-    #statusMsg { font-size: 13px; text-align: center; color: #00e6c3; margin-top: 10px; font-weight: bold; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px; }
-
-    #ownerOnlyInterface { display: none; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px; padding-bottom: 5px; }
-
-    /* ---------- Unified player card ---------- */
-    .player-card { background: rgba(20,18,26,0.55); backdrop-filter: blur(14px); border-radius: 18px; padding: 18px 20px; margin-top: 16px; border: 1px solid rgba(255,255,255,0.08); }
-    .player-top { display:flex; align-items:center; gap:14px; margin-bottom:18px; min-width:0; text-align:left; }
-    .album-art { width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg,#7c6bf0,#4834d4); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow: 0 4px 14px rgba(72,52,212,0.4); }
-    #trackMeta { min-width:0; flex:1; }\n    #trackTitle { font-weight:700; font-size:clamp(14px, 3.8vw, 16px); color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; display:block; line-height:1.4; }\n    #trackSubtitle { color:#aaa; font-size:12px; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .progress-bar { height:4px; background:rgba(255,255,255,0.15); border-radius:4px; cursor:pointer; position:relative; }
-    .progress-bar.disabled { cursor: default; }
-    .progress-fill { height:100%; background:#9b8bff; border-radius:4px; width:0%; transition: width 0.1s linear; }
-    .time-row { display:flex; justify-content:space-between; font-size:11px; color:#9b9b9b; margin-top:7px; margin-bottom:14px; }
-    .controls-row { display:flex; align-items:center; justify-content:center; gap:clamp(20px, 6vw, 32px); }\n    .extra-controls { display:flex; align-items:center; justify-content:space-between; margin-top:18px; gap:12px; }\n    .extra-controls .ctrl-btn { color:#bdb6d8; }\n    .extra-controls .ctrl-btn.active { color:#ff6bba; }\n    .menu-wrap { position:relative; }\n    #playerMenu { display:none; position:absolute; right:0; bottom:34px; z-index:5; min-width:150px; padding:6px; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:#211b30; box-shadow:0 8px 24px #0008; }\n    #playerMenu.open { display:block; }\n    #playerMenu button { width:100%; margin:0; text-align:left; background:transparent; padding:9px 10px; font-size:13px; }\n    #playerMenu button:hover { background:#ffffff14; transform:none; }
-    .ctrl-btn { background:none; border:none; color:#e6e6e6; cursor:pointer; padding:0; margin:0; width:auto; display:flex; align-items:center; justify-content:center; transition: transform 0.15s, color 0.15s; }
-    .ctrl-btn:hover { color:#fff; background: none; transform: scale(1.15); }
-    .ctrl-btn.play-btn { transform: scale(1.3); }
-    .ctrl-btn.play-btn:hover { transform: scale(1.45); }
-    .ctrl-btn.locked, .progress-bar.disabled { opacity: 0.4; pointer-events: none; }
-    @media (max-width:520px) { body { padding:16px 10px; } .container { padding:17px 14px; border-radius:14px; } .player-card { padding:16px 14px; } .controls-row { gap:clamp(18px, 7vw, 28px); } .album-art { width:44px; height:44px; } }\n    @media (min-width:700px) { body { padding-top:32px; } .container { width:min(100%, 500px); } }\n    #ytPlayer { position:absolute; width:1px; height:1px; overflow:hidden; left:-9999px; }
+    :root { color-scheme: dark; --accent:#54214f; --accent2:#6b2b65; --glass:rgba(22,17,27,.62); --line:rgba(255,255,255,.78); }
+    * { box-sizing:border-box; }
+    html { min-height:100%; -webkit-text-size-adjust:100%; }
+    body {
+      margin:0; min-height:100vh; padding:clamp(14px,4vw,34px) 12px;
+      background:#17101d url('/AI.jpg') center center / cover fixed no-repeat;
+      color:#fff; font-family:Georgia,'Times New Roman',serif;
+      font-size:clamp(16px,2.7vw,22px);
+    }
+    body::before { content:""; position:fixed; inset:0; z-index:-1; background:rgba(20,8,24,.18); backdrop-filter:blur(3px); }
+    .container {
+      width:min(100%,560px); margin:0 auto; padding:0;
+      border-radius:24px; background:rgba(10,8,17,.12);
+    }
+    h2 { font-size:clamp(25px,5.8vw,40px); font-weight:400; text-align:left; margin:8px 0 24px; overflow-wrap:anywhere; text-shadow:0 2px 10px #0008; }
+    label { display:block; font-weight:400; font-size:clamp(20px,4.6vw,29px); margin:0 0 10px; color:#fff; }
+    select, input[type=text], input[type=file] {
+      display:block; width:100%; min-width:0; min-height:52px; padding:10px 14px; margin:0 0 14px;
+      border:2px solid var(--line); border-radius:18px; background:rgba(20,14,25,.32);
+      color:#fff; font:inherit; outline:none;
+    }
+    select { appearance:auto; }
+    select option { background:#241a2a; color:#fff; }
+    input[type=file] { min-height:unset; border:0; padding:8px 0; background:transparent; font-size:clamp(14px,3.2vw,19px); }
+    input[type=file]::file-selector-button { border:0; border-radius:20px; padding:7px 14px; background:#fff; color:#241a2a; font:inherit; cursor:pointer; margin-right:10px; }
+    button {
+      display:block; width:100%; min-height:54px; padding:10px 12px; margin:0 0 14px;
+      border:0; border-radius:0 0 18px 18px; background:var(--accent); color:#fff;
+      font:inherit; cursor:pointer; transition:background .18s ease,transform .18s ease;
+    }
+    button:hover { background:var(--accent2); }
+    button:active { transform:scale(.99); }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    #toggleControlBtn { background:var(--accent); margin-top:0; margin-bottom:0; box-shadow:none; }
+    #toggleControlBtn:hover { background:var(--accent2); }
+    #ownerOnlyInterface { display:none; text-align:center; margin:0 0 14px; padding:0; border:0; }
+    #ownerControlBlock { margin-top:14px; }
+    .section-card {
+      width:100%; min-width:0; margin:0 0 14px; padding:clamp(12px,2.8vw,20px);
+      border-radius:20px; border:1px solid rgba(0,0,0,.48);
+      background:rgba(30,25,31,.67); backdrop-filter:blur(15px);
+      box-shadow:0 5px 16px rgba(0,0,0,.08);
+    }
+    .friends-card { margin-bottom:14px; }
+    .friends-card select { margin-bottom:0; }
+    .friends-card #ownerOnlyInterface { margin-top:14px; }
+    .section-card h3 { margin:0 0 8px!important; }
+    .section-card button:last-child { margin-bottom:0; }
+    #ownerControlBlock h3 {
+      color:#fff; font-weight:400; font-size:clamp(21px,4.6vw,29px); margin:0 0 8px; padding:0; border:0;
+    }
+    #ownerControlBlock select { margin-bottom:14px; }
+    #ownerControlBlock input[type=text] { margin-bottom:14px; }
+    #ownerControlBlock button { margin-bottom:14px; }
+    #ownerControlBlock > h3:not(:first-child) { margin-top:10px; }
+    audio { display:none; }
+    #uploadProgressWrap { margin:0 0 14px; }
+    .upload-progress-track { height:6px; background:rgba(255,255,255,.2); border-radius:8px; overflow:hidden; }
+    #uploadProgressBar { height:100%; width:0%; background:#c8b9ff; transition:width .15s linear; }
+    #uploadProgressText { font-size:12px; color:#eee; margin-top:4px; text-align:right; }
+    #ytSearchResults { max-height:240px; overflow-y:auto; margin:0 0 14px; text-align:left; }
+    .yt-result { display:flex; align-items:center; gap:10px; padding:9px; border-radius:12px; cursor:pointer; transition:background .2s; }
+    .yt-result:hover { background:rgba(255,255,255,.1); }
+    .yt-result img { width:72px; height:52px; border-radius:7px; object-fit:cover; flex-shrink:0; }
+    .yt-result-title { font-size:15px; color:#fff; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .yt-result-channel { font-size:12px; color:#ddd; margin-top:3px; }
+    #statusMsg { font-family:inherit; font-size:clamp(13px,3vw,18px); text-align:center; color:#fff; margin:8px 0; padding:5px; text-shadow:0 1px 6px #000; background:transparent; border-radius:0; }
+    .player-card {
+      width:100%; min-width:0; padding:14px; margin:6px 0 0; border-radius:22px;
+      border:1px solid rgba(0,0,0,.45); background:rgba(25,21,29,.72); backdrop-filter:blur(18px);
+      box-shadow:0 8px 24px rgba(0,0,0,.12);
+    }
+    .player-top { display:flex; align-items:center; gap:14px; min-width:0; margin-bottom:12px; }
+    .album-art { width:clamp(64px,14vw,92px); height:clamp(64px,14vw,92px); flex:0 0 auto; border-radius:18px; background:#5942df; display:flex; align-items:center; justify-content:center; box-shadow:none; }
+    .album-art svg { width:44%; height:44%; }
+    .track-meta { flex:1; min-width:0; }
+    .now-playing-label { font-size:clamp(21px,4.8vw,29px); line-height:1.1; margin-bottom:6px; }
+    #trackTitle { display:block; width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:400; font-size:clamp(16px,3.7vw,22px); line-height:1.35; }
+    #trackSubtitle { color:rgba(255,255,255,.78); font-size:clamp(13px,3.2vw,18px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .progress-bar { height:7px; background:rgba(255,255,255,.48); border-radius:8px; cursor:pointer; position:relative; overflow:hidden; touch-action:manipulation; }
+    .progress-bar.disabled { cursor:default; }
+    .progress-fill { height:100%; background:#fff; border-radius:8px; width:0%; transition:width .15s linear; }
+    .time-row { display:flex; justify-content:space-between; gap:12px; font-family:Arial,sans-serif; font-size:10px; color:#eee; margin-top:6px; margin-bottom:12px; }
+    .controls-row { display:flex; align-items:center; justify-content:space-between; gap:clamp(8px,4vw,26px); padding:0 clamp(4px,2vw,14px); }
+    .ctrl-btn { flex:1 1 0; width:auto; min-width:0; min-height:38px; padding:5px; margin:0; display:flex; align-items:center; justify-content:center; color:#fff; background:transparent; border-radius:12px; }
+    .ctrl-btn:hover { background:rgba(255,255,255,.08); transform:none; }
+    .ctrl-btn svg { width:clamp(19px,4.5vw,24px); height:clamp(19px,4.5vw,24px); }
+    .ctrl-btn.play-btn { flex:0 0 clamp(42px,10vw,56px); height:clamp(42px,10vw,56px); border-radius:50%; background:transparent; transform:none; }
+    .ctrl-btn.play-btn svg { width:28px; height:28px; }
+    .ctrl-btn.play-btn:hover { transform:scale(1.05); background:rgba(255,255,255,.08); }
+    .ctrl-btn.active-mode { color:#c9b9ff; background:rgba(255,255,255,.08); }
+    .ctrl-btn.locked, .progress-bar.disabled { opacity:.42; }
+    .ctrl-btn.locked { pointer-events:none; }
+    #ytPlayer { position:fixed; width:200px; height:112px; left:-10000px; top:0; }
+    @media (max-width:380px) {
+      body { padding:10px 7px; }
+      .container { padding:0; }
+      .player-card { padding:11px; }
+      .controls-row { gap:4px; padding:0; }
+      .ctrl-btn { min-height:34px; }
+      .now-playing-label { font-size:20px; }
+    }
+    @media (min-width:700px) {
+      .container { max-width:560px; }
+      body { padding-top:30px; }
+    }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; } }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>🎤 Room <span id="roomCodeDisplay"></span></h2>
+    <h2>Room : <span id="roomCodeDisplay"></span></h2>
 
-    <label for="userSelect">👥 Friends in room</label>
-    <select id="userSelect" size="3" style="height:80px;"></select>
-
-    <div id="ownerOnlyInterface">
+    <section class="section-card friends-card">
+      <label for="userSelect">Friends in Room:</label>
+      <select id="userSelect" size="3" style="height:80px;"></select>
+      <div id="ownerOnlyInterface">
         <button id="toggleControlBtn">🔓 Allow Friends to Control</button>
-    </div>
+      </div>
+    </section>
 
     <div id="ownerControlBlock" style="display: none;">
-      <h3>🎵 Tamil Songs</h3>
+      <section class="section-card"><h3>Tamil Songs ♫</h3>
       <select id="tamilSongs"><option>Loading…</option></select>
-      <button id="playTamilBtn">Play Tamil Selection</button>
+      <button id="playTamilBtn">Play Tamil Selection</button></section>
 
-      <h3>🎶 English Songs</h3>
+      <section class="section-card"><h3>English Songs ♫</h3>
       <select id="englishSongs"><option>Loading…</option></select>
-      <button id="playEnglishBtn">Play English Selection</button>
+      <button id="playEnglishBtn">Play English Selection</button></section>
 
-      <h3>📂 Local Files</h3>
+      <section class="section-card"><h3>Local Files ▣</h3>
       <input type="file" id="fileInput" accept="audio/*" />
       <button id="playLocalBtn">Upload & Play</button>
       <div id="uploadProgressWrap" style="display:none;">
         <div class="upload-progress-track"><div id="uploadProgressBar"></div></div>
         <div id="uploadProgressText">0%</div>
-      </div>
+      </div></section>
 
-      <h3>▶️ YouTube</h3>
+      <section class="section-card"><h3>YouTube ▷</h3>
       <input type="text" id="ytSearchInput" placeholder="Search a song on YouTube" />
       <button id="ytSearchBtn">🔍 Search</button>
       <div id="ytSearchResults"></div>
+      </section>
     </div>
 
     <div id="statusMsg">Connecting...</div>
@@ -106,10 +162,7 @@
             <circle cx="18" cy="16" r="3"></circle>
           </svg>
         </div>
-        <div id="trackMeta">
-          <div id="trackTitle" title="Not Playing">Not Playing</div>
-          <div id="trackSubtitle">Music Room • Shared listening</div>
-        </div>
+        <div class="track-meta"><div class="now-playing-label">Now Playing:</div><div id="trackTitle">Not Playing</div><div id="trackSubtitle">Choose a song to start listening</div></div>
       </div>
 
       <div id="progressBar" class="progress-bar disabled">
@@ -121,33 +174,22 @@
       </div>
 
       <div class="controls-row">
-        <button id="prevBtn" class="ctrl-btn locked" title="Previous">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-        </button>
-        <button id="playPauseBtn" class="ctrl-btn play-btn locked" title="Play/Pause">
-          <svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
-        </button>
-        <button id="nextBtn" class="ctrl-btn locked" title="Next">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg>
-        </button>
-      </div>
-      <div class="extra-controls">
         <button id="shuffleBtn" class="ctrl-btn" title="Shuffle" aria-label="Shuffle">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3h4v4h-2V6.41l-4.3 4.3-1.4-1.42 4.3-4.29H17V3zM3 7h3.2c1.3 0 2.5.65 3.3 1.73l5.2 6.54A2.1 2.1 0 0 0 16.3 16H17v-2l4 3-4 3v-2h-.7a4.1 4.1 0 0 1-3.2-1.55L7.9 9.9A2.1 2.1 0 0 0 6.2 9H3V7zm0 10h3.2c.55 0 1.08-.22 1.47-.62l1.1-1.1 1.3 1.62-.98.98A4.1 4.1 0 0 1 6.2 19H3v-2z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3h4v4h-2V6.41l-3.29 3.3-1.42-1.42L17.59 5H17V3zM3 7h3.2c1.3 0 2.4.6 3.2 1.6l5.2 6.8c.4.5.9.6 1.4.6H19v-2l3 3-3 3v-2h-3c-1.3 0-2.4-.6-3.2-1.6L7.6 9.6C7.2 9.1 6.7 9 6.2 9H3V7zm0 10h3.2c.5 0 1-.2 1.4-.6l1.2-1.5 1.3 1.7-1 1.2c-.8.8-1.8 1.2-2.9 1.2H3v-2zm13-10h3V5l3 3-3 3V9h-1.2c-.5 0-1 .2-1.4.6l-.5.7-1.3-1.7.3-.4c.8-.8 1.8-1.2 3-1.2z"/></svg>
         </button>
-        <button id="repeatBtn" class="ctrl-btn" title="Repeat off" aria-label="Repeat">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h11l-2-2 1.4-1.4L22 8l-4.6 4.4L16 11l2-2H7a2 2 0 0 0-2 2v1H3v-1a4 4 0 0 1 4-4zm10 10H6l2 2-1.4 1.4L2 16l4.6-4.4L8 13l-2 2h11a2 2 0 0 0 2-2v-1h2v1a4 4 0 0 1-4 4z"/></svg>
+        <button id="prevBtn" class="ctrl-btn locked" title="Previous" aria-label="Previous">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
         </button>
-        <div class="menu-wrap">
-          <button id="moreBtn" class="ctrl-btn" title="More options" aria-label="More options">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-          </button>
-          <div id="playerMenu">
-            <button id="copyRoomBtn">Copy room code</button>
-            <button id="copySongBtn">Copy song title</button>
-          </div>
-        </div>
+        <button id="playPauseBtn" class="ctrl-btn play-btn locked" title="Play/Pause" aria-label="Play or pause">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <button id="nextBtn" class="ctrl-btn locked" title="Next" aria-label="Next">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg>
+        </button>
+        <button id="repeatBtn" class="ctrl-btn" title="Repeat track" aria-label="Repeat track">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h11l-2-2 1.4-1.4L22 8l-4.6 4.4L16 11l2-2H7a2 2 0 0 0-2 2v1H3v-1a4 4 0 0 1 4-4zm10 10H6l2 2-1.4 1.4L2 16l4.6-4.4L8 13l-2 2h11a2 2 0 0 0 2-2v-1h2v1a4 4 0 0 1-4 4z"/></svg>
+        </button>
       </div>
     </div>
 
